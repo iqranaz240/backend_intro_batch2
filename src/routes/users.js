@@ -6,6 +6,6 @@ const { getUser, addUser } = require("../controllers/users");
 // router.use(bodyParser.json());
 
 router.get("/", getUser);
-router.post("/add", addUser)
+router.post("/addUser", addUser)
 
 module.exports = router;
