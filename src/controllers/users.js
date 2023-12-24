@@ -32,4 +32,45 @@ const addUser = async (req, res) => {
     }
 }
 
-module.exports = { getUser, addUser };
+const getUserByEmail = async (req, res) => {
+    try {
+        const email = req.query.email;
+
+        if (!email) {
+            return res.status(400).send("Email parameter is required.");
+        }
+
+        const user = await Users.findOne({ email });
+
+        if (user) {
+            return res.status(200).send({ user });
+        } else {
+            return res.status(404).send("User not found.");
+        }
+    } catch (err) {
+        return res.status(500).send("Error fetching user.");
+    }
+}
+
+const deleteUser = async (req, res) => {
+    try {
+        const email = req.query.email;
+        if (!email) {
+            return res.status(400).send("Email parameter is required.");
+        }
+
+        const user = await Users.findOne({ email });
+        if (!user) {
+            return res.status(400).send("User not found.");
+        }
+
+        const deleteUser = await Users.deleteOne(user);
+        if (deleteUser) {
+            return res.status(200).send(`${email} deleted successfully.`);
+        } 
+    } catch (err) {
+        return res.status(500).send("Error deleting user.");
+    }
+}
+
+module.exports = { getUser, addUser, getUserByEmail, deleteUser };
