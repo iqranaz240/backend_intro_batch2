@@ -1,4 +1,5 @@
 const express = require('express');
+const bcrypt = require('bcryptjs');
 const router = express.Router();
 const Users = require("../models/users");
 
@@ -9,20 +10,25 @@ const getUser = async (req, res) => {
 
 const addUser = async (req, res) => {
     let newUser = req.body;
+    let hashedPassword = bcrypt.hashSync(newUser.password, 8);
     console.log(newUser)
 
     try {
         const existingUser = await Users.findOne({ email: newUser.email });
 
+        if (Object.keys(newUser).length < 4) {
+            return res.send("User data is incomplete.");
+        }
         if (existingUser) {
             console.log("User already exists.");
             return res.send("User already exists.");
-        } else {
+        } 
+        else {
             const user = await Users.create({
                 firstName: newUser.firstName,
                 lastName: newUser.lastName,
                 email: newUser.email,
-                password: newUser.password
+                password: hashedPassword
             });
 
             return res.status(200).send({ user: user });
@@ -99,4 +105,20 @@ const updateUser = async (req, res) =>  {
     }
 }
 
-module.exports = { getUser, addUser, getUserByEmail, deleteUser, updateUser };
+const loginUser = async (req, res) => {
+    try {
+        const user = await Users.findOne({ email: req.body.email });
+        if (!user) return res.status(404).send('No user found.');
+
+        var passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
+        if (!passwordIsValid) return res.status(401).send({ auth: 'Invalid Password' });
+
+        console.log("Successfully loged in...")
+        res.status(200).send({ auth: 'Successfully loged in.'});
+    }
+    catch (err) {
+        if (err) return res.status(500).send('Error on the server.');
+    }
+}
+
+module.exports = { getUser, addUser, getUserByEmail, deleteUser, updateUser, loginUser };
