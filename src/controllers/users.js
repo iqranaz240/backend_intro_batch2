@@ -73,4 +73,30 @@ const deleteUser = async (req, res) => {
     }
 }
 
-module.exports = { getUser, addUser, getUserByEmail, deleteUser };
+const updateUser = async (req, res) =>  {
+    try {
+        const email = req.query.email;
+        const newPassword = req.body.password;
+        if (!email) {
+            return res.status(400).send("Email parameter is required.");
+        }
+ 
+        const user = await Users.findOne({ email });
+        if (!user) {
+            return res.status(400).send("User not found.");
+        }
+        const updateDocument = {
+            $set: {
+               password: newPassword,
+            },
+         };
+        const updateUser = await Users.updateOne(user, updateDocument);
+        if (updateUser) {
+            return res.status(200).send(`${email} updated successfully.`);
+        } 
+    } catch (err) {
+        return res.status(500).send("Error updating user.");
+    }
+}
+
+module.exports = { getUser, addUser, getUserByEmail, deleteUser, updateUser };
