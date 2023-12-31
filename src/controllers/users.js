@@ -114,7 +114,7 @@ const loginUser = async (req, res) => {
         if (!passwordIsValid) return res.status(401).send({ auth: 'Invalid Password' });
 
         console.log("Successfully loged in...")
-        res.status(200).send({ auth: 'Successfully loged in.'});
+        res.status(200).send({ auth: true, message: "Successfully loged in."});
     }
     catch (err) {
         if (err) return res.status(500).send('Error on the server.');

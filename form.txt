@@ -1,0 +1,53 @@
+import React from 'react'
+import { useState } from 'react';
+import axios from 'axios';
+
+export default function SignIn() {
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+
+    const signIn = (event) => {
+        event.preventDefault();
+
+    axios.post('http://localhost:8080/users/loginUser', {
+      email,
+      password
+    }).then(res => {
+      console.log(res);
+      if (res.data.auth === true)
+      {
+        alert('Loged in.')
+      }
+      else
+      {
+        alert("Invalid email/password.")
+      }
+    })
+    .catch(err => {
+      alert("Try Again.")
+      console.log(err)
+    });
+    }
+
+    return (
+      <form>
+        <label>Enter your email:
+          <input
+            type="text" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </label>
+
+        <label>Enter your password:
+          <input
+            type="password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+
+        <button onClick={signIn}>SignIn</button>
+      </form>
+  )
+}
