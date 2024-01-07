@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken')
 const router = express.Router();
 const Users = require("../models/users");
 
@@ -30,8 +31,12 @@ const addUser = async (req, res) => {
                 email: newUser.email,
                 password: hashedPassword
             });
-
-            return res.status(200).send({ user: user });
+            if (user) {
+                var token = jwt.sign({ email: user.email }, "mySecret", {
+                    expiresIn: 86400 // expires in 24 hours
+                });
+                return res.status(200).send({ auth: true, token: token });
+            }
         }
     } catch (err) {
         return res.status(500).send("There was a problem registering the user.", err);
@@ -40,17 +45,29 @@ const addUser = async (req, res) => {
 
 const getUserByEmail = async (req, res) => {
     try {
+        console.log(req)
         const email = req.query.email;
+        const token = req.headers['x-access-token'];
+        console.log(token)
+        if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
 
         if (!email) {
             return res.status(400).send("Email parameter is required.");
         }
 
+        const decode = jwt.verify(token, "mySecret")
+        console.log(decode);
         const user = await Users.findOne({ email });
 
         if (user) {
-            return res.status(200).send({ user });
-        } else {
+            if (user.email === decode.email) {
+                return res.status(200).send({ user });
+            }
+            else {
+                return res.status(403).send("Forbidden to access user.");
+            }
+        }
+         else {
             return res.status(404).send("User not found.");
         }
     } catch (err) {
@@ -113,8 +130,12 @@ const loginUser = async (req, res) => {
         var passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
         if (!passwordIsValid) return res.status(401).send({ auth: 'Invalid Password' });
 
+        var token = jwt.sign({ email: user.email }, "mySecret", {
+            expiresIn: 86400 // expires in 24 hours
+        });
         console.log("Successfully loged in...")
-        res.status(200).send({ auth: true, message: "Successfully loged in."});
+        return res.status(200).send({ auth: true, token: token });
+        
     }
     catch (err) {
         if (err) return res.status(500).send('Error on the server.');
