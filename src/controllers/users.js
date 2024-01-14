@@ -52,6 +52,16 @@ const getUserByEmail = async (req, res) => {
         if (!email) {
             return res.status(400).send("Email parameter is required.");
         }
+        const token = req.headers['x-access-token'];
+        console.log(token)
+        if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
+
+        if (!email) {
+            return res.status(400).send("Email parameter is required.");
+        }
+
+        const decode = jwt.verify(token, "mySecret")
+        console.log(decode);
         const user = await Users.findOne({ email });
         if (user) {
             if (user.email === decode.email) {
