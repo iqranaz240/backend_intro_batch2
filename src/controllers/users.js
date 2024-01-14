@@ -29,10 +29,11 @@ const addUser = async (req, res) => {
                 firstName: newUser.firstName,
                 lastName: newUser.lastName,
                 email: newUser.email,
-                password: hashedPassword
+                password: hashedPassword, 
+                role: 'user'
             });
             if (user) {
-                var token = jwt.sign({ email: user.email }, "mySecret", {
+                var token = jwt.sign({ email: user.email, role: user.role }, "mySecret", {
                     expiresIn: 86400 // expires in 24 hours
                 });
                 return res.status(200).send({ auth: true, token: token });
@@ -47,18 +48,11 @@ const getUserByEmail = async (req, res) => {
     try {
         console.log(req)
         const email = req.query.email;
-        const token = req.headers['x-access-token'];
-        console.log(token)
-        if (!token) return res.status(401).send({ auth: false, message: 'No token provided.' });
-
+        
         if (!email) {
             return res.status(400).send("Email parameter is required.");
         }
-
-        const decode = jwt.verify(token, "mySecret")
-        console.log(decode);
         const user = await Users.findOne({ email });
-
         if (user) {
             if (user.email === decode.email) {
                 return res.status(200).send({ user });
@@ -130,7 +124,7 @@ const loginUser = async (req, res) => {
         var passwordIsValid = bcrypt.compareSync(req.body.password, user.password);
         if (!passwordIsValid) return res.status(401).send({ auth: 'Invalid Password' });
 
-        var token = jwt.sign({ email: user.email }, "mySecret", {
+        var token = jwt.sign({ email: user.email, role: user.role }, "mySecret", {
             expiresIn: 86400 // expires in 24 hours
         });
         console.log("Successfully loged in...")
