@@ -28,6 +28,8 @@ const addUser = async (req, res) => {
             const user = await Users.create({
                 firstName: newUser.firstName,
                 lastName: newUser.lastName,
+                userId: newUser.userId,
+                courseName: newUser.courseName,
                 email: newUser.email,
                 password: hashedPassword, 
                 role: 'user'
